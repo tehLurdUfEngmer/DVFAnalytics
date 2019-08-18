@@ -3,10 +3,12 @@
     <head>
         <meta charset="utf-8" />
         <title>Immobilier</title>
+        <link href="/style.css" type="text/css" rel="stylesheet">
     </head>
 
     <body>
-        <h1>Highcharts</h1>
+        <h1>Highcharts -- DVF (Demandes de Valeurs Foncières)</h1>
+        <h3><i>Author : TehLurdUfEngmer</i></h3>
 		<fieldset id = "zone1">
 			<label for="codePostal">Code Postal:</label>
 			<input type="text" placeholder="CODE POSTAL" id="codePostal" maxlength = "5" /><br/>
@@ -14,13 +16,31 @@
 			<input type="number" placeholder="Surface Min" id="surfaceMin"/><br/>
 			<label for="surfaceMax">Surface Habitable Maximale:</label>
 			<input type="number" placeholder="Surface Max" id="surfaceMax"/><br/>
+      <label for="typePrix">Terrain ?
+        <label class="switch">
+          <input type="checkbox" id ="avecTerrain">
+          <span class="slider"></span>
+        </label>
+      </label></br>
+      <div id="formTerrain" hidden>
+      <label for="surfaceMinTerrain">Surface Terrain Minimale:</label>
+			<input type="number" placeholder="Surface Min" id="surfaceMinTerrain" min="0"/><br/>
+			<label for="surfaceMaxTerrain">Surface Terrain Maximale:</label>
+			<input type="number" placeholder="Surface Max" id="surfaceMaxTerrain" min="1"/>
+      </div>
 			<label for="typeLogement">Type de logement:</label>
 			<select name="typeLogement" id="listeLogement">
 			  <option value="1">Maison</option>
 			  <option value="2">Appartement</option>
 			  <option value="a">Autre</option>
 			  <option value="t">Tous</option>
-			</select>
+			</select><br/>
+      <label for="typePrix">Type de valeur : (€|€/m²)
+        <label class="switch">
+          <input type="checkbox" id ="typePrix">
+          <span class="slider"></span>
+        </label>
+      </label>
 		</fieldset>
     <div id="envoi">
       <input type="button" value="Requêter" id="request"/>
@@ -44,9 +64,55 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io.connect('http://localhost:8080');
+
+      //gestion affichage formulaire du terrain
+      document.getElementById("avecTerrain").onchange = function(){
+
+        var estCoche = document.getElementById('avecTerrain').checked;
+        switch (estCoche) {
+          case true:// afficher
+            document.getElementById('formTerrain').hidden = false;
+            break;
+          case false:// cacher
+            document.getElementById('formTerrain').hidden = true;
+            break;
+        }
+
+      }
+
+      //gestion surface min Terrain
+      document.getElementById("surfaceMinTerrain").onchange = function(){
+        var actualValMin = document.getElementById('surfaceMinTerrain').value;
+        if(actualValMin > document.getElementById('surfaceMaxTerrain').value){
+          document.getElementById('surfaceMaxTerrain').value = actualValMin;
+        }
+      }
+      //gestion surface max Terrain
+      document.getElementById("surfaceMaxTerrain").onchange = function(){
+        var actualValMax = document.getElementById('surfaceMaxTerrain').value;
+        if(actualValMax < document.getElementById('surfaceMinTerrain').value){
+          document.getElementById('surfaceMinTerrain').value = actualValMax;
+        }
+      }
+      //gestion surface min Habitable
+      document.getElementById("surfaceMin").onchange = function(){
+        var actualValMin = document.getElementById('surfaceMin').value;
+        if(actualValMin > document.getElementById('surfaceMax').value){
+          document.getElementById('surfaceMax').value = actualValMin;
+        }
+      }
+      //gestion surface max habitable
+      document.getElementById("surfaceMax").onchange = function(){
+        var actualValMax = document.getElementById('surfaceMax').value;
+        if(actualValMax < document.getElementById('surfaceMin').value){
+          document.getElementById('surfaceMin').value = actualValMax;
+        }
+      }
+
+      // gestion liste type logement
       document.getElementById("listeLogement").onchange = function(){
-        const optionTab = [1,2,3,4,5];
-        const optionTextTab = ["Studio ou T1","T2","T3","T4","T5"]
+        const optionTab = [0,1,2,3,4,5];
+        const optionTextTab = ["Tous","Studio ou T1","T2","T3","T4","T5"]
         const selectId = "taille";
         if(!document.getElementById(selectId) && document.getElementById("listeLogement").value == 2){
           // generation sous liste
@@ -63,23 +129,40 @@
 			// envoi des msg chat + nettoyage de la zone texte apres envoi
 			document.getElementById("request").onclick = function(){
 				// mettre tests de bonne données.
-				const codePostal = document.getElementById("codePostal").value;
-				const surfaceMin = document.getElementById("surfaceMin").value;
-				const surfaceMax = document.getElementById("surfaceMax").value;
-				const typeLog = document.getElementById("listeLogement").value;
+				var codePostal = document.getElementById("codePostal").value;
+				var surfaceMin = document.getElementById("surfaceMin").value;
+				var surfaceMax = document.getElementById("surfaceMax").value;
+        var terrainCoche = document.getElementById("avecTerrain").checked;
+        var surfaceMinTerrain = document.getElementById("surfaceMinTerrain").value;
+				var surfaceMaxTerrain = document.getElementById("surfaceMaxTerrain").value;
+				var typeLog = document.getElementById("listeLogement").value;
+        var typePrix = document.getElementById("typePrix").checked;
+
+        switch (terrainCoche) {
+          case false:// envoi null
+            surfaceMinTerrain = null;
+            surfaceMaxTerrain = null;
+            break;
+        }
+
         if(document.getElementById("taille")){
           var tailleLog = document.getElementById("taille").value;
         }else{
           var tailleLog = 0;
         }
 				// envoi des infos au serveur
-				socket.emit("request",{typlog: typeLog,cp : codePostal, smin : surfaceMin, smax : surfaceMax, nbpce : tailleLog});
+				socket.emit("request",{typlog: typeLog,cp : codePostal, smint : surfaceMinTerrain, smaxt : surfaceMaxTerrain, smin : surfaceMin, smax : surfaceMax, nbpce : tailleLog, typprix: typePrix});
 			}
 			// reception données statistiques
 			socket.on("stats_basic", function(stats){
-
-				console.log(stats.data);
+        /*
+          - priceType: label d'unité
+          - categories : Array boxPlotCategories
+          - data : Array boxPlotdata
+        */
+				//console.log(stats.data);
 				// graphique boite a moustaaaache
+
 				Highcharts.chart('boxplot', {
 					chart: {
 						type: 'boxplot'
@@ -88,7 +171,7 @@
 						text: 'Boite a Moustache (par semestre)'
 					},
 					subtitle: {
-						text: 'Données aberrantes supprimées<br/>règle : |obs - mean| < 3 * std',
+						text: 'Données aberrantes supprimées<br/>règle : |obs - mean| < 2 * std',
 						useHTML: true,
 						floating: true
 					},
@@ -106,7 +189,7 @@
 							text: 'Observations'
 						},
 						labels: {
-							format: '{value} €/m²'
+							format: '{value} '+stats.priceType
 						}
 					},
 					series: [{
@@ -115,35 +198,22 @@
 						tooltip: {
 							headerFormat: '<em>Semestre {point.key}</em><br/>'
 						}
-					}/*, {
-						name: 'Outlier',
-						color: Highcharts.getOptions().colors[0],
-						type: 'scatter',
-						data: [ // x, y positions where 0 is the first category
-							[0, 644],
-							[4, 718],
-							[4, 951],
-							[4, 969]
-						],
-						marker: {
-							fillColor: 'white',
-							lineWidth: 1,
-							lineColor: Highcharts.getOptions().colors[0]
-						},
-						tooltip: {
-							pointFormat: 'Observation: {point.y}'
-						}
-					}*/]
+					}]
 
 				});
 			});
 
 			// reception des données graphiques
 			socket.on("data", function(data){
-				// logs et tests
-				//console.log(new Date(data[0].dateMutation).getTime());
-				//console.log(typeof new Date(data[0].dateMutation).getTime());
-				//console.log(data);
+				/*
+          - priceType: true=prixAuM2 | false=valeurFonciere
+          - dataHouse: Array des prix des maisons
+          - dataFlat: Array des prix des Appartements
+          - dataOther: Array des prix des autres biens
+          - regressions: Array=[reg_maisons,reg_apparts,reg_autres]
+          - pentes: Array=[pente_maisons,pente_apparts,pente_autres]
+        */
+
 
 				// initialisation des tableaux du graphe
 				Highcharts.chart('graphique1', {
@@ -170,7 +240,7 @@
 							text: 'Prix'
 						},
 						labels: {
-							format: '{value} €/m²'
+							format: '{value} '+data.priceType
 						}
 					},
 					legend: {
@@ -242,21 +312,6 @@
 						data: data.dataOther,
 						color : 'green'
 					}]
-					/*responsive: {
-						rules: [{
-							condition: {
-								maxWidth: 500
-							},
-							chartOptions: {
-								legend: {
-									layout: 'horizontal',
-									align: 'center',
-									verticalAlign: 'bottom'
-								}
-							}
-						}]
-					}*/
-
 				});
 			});
 

@@ -1,5 +1,6 @@
 
-const app = require('express')();
+const express = require('express');
+const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const ent = require('ent');
@@ -15,8 +16,9 @@ const urldb = "mongodb://localhost:27017/";
 // page par default : index.html
 app.get('/', function (req, res) {
 	res.setHeader('Content-Type','text/html');
-	res.sendFile(__dirname + '/index.html');
+	res.sendFile(__dirname + '/public/index.html');
 });
+app.use(express.static(__dirname + '/public'));
 
 
 pente = function(array2d){
@@ -47,18 +49,42 @@ io.sockets.on('connection', function (socket) {
 					- cp : codePostal ou debut de Code Postal
 					- smin : surface Habitable minimale
 					- smax : surface Habitable MAximale
+					- smint : surface Terrain minimale
+					- smaxt : surface Terrain Maximale
 					- nbpce : nombre de pièces principales
+					- typprix : prixAuM2 (true) | Valeur Foncière (false)
 		*/
 
-		//
+		// gestion surface Terrain
+		if (obj.smaxt === null) {
+				var ssRqtSMinT = {$in:[null,0]};
+		}else{
+			var ssRqtSMinT = {$gt: parseInt(obj.smint)-1, $lt: parseInt(obj.smaxt)+1};
+		}
+
+
+
+
+		// gestion label highcharts sur l'abscisse
+		console.log(typeof(obj.typprix));
+		switch(obj.typprix) {
+			case true:
+				var labelPrix = '€/m²';
+				break;
+			case false:
+				var labelPrix = '€';
+				break;
+		}
+
+		// gestion nombre de pièces
 		if(obj.nbpce == 5){
 			// regexp : >= 5
-			var ssrqtNbPce = new RegExp('^(([5-9])|([1-9]\d{1,}))$');
+			var ssrqtNbPce = { $gt: 4};
 		}else if(obj.nbpce == 0){
-			var ssrqtNbPce = new RegExp('^[0-9]{1,}$')
+			var ssrqtNbPce = { $gt : 0};
 		}
 		else{
-			var ssrqtNbPce = new RegExp('^'+obj.nbpce+'$');
+			var ssrqtNbPce = parseInt(obj.nbpce);
 		}
 
 		// gestion type logement :
@@ -80,7 +106,7 @@ io.sockets.on('connection', function (socket) {
 			  if (err) throw err;
 			  // construction de la requete :
 
-			  query = {nbPiecePrincipales : ssrqtNbPce,codeTypeLocal: ssrqtLog, codePostal : regex, surfaceReelle : {"$lt" : parseFloat(obj.smax), "$gt" : parseFloat(obj.smin)}};
+			  query = {surfaceTerrain: ssRqtSMinT,nbPiecePrincipales : ssrqtNbPce,codeTypeLocal: ssrqtLog, codePostal : regex, surfaceReelle : {"$lt" : parseFloat(obj.smax), "$gt" : parseFloat(obj.smin)}, prixM2Bati: {$ne: null}, dateMutation: {$ne: null}};
 			  console.log(query);
 
 			  // database local
@@ -97,11 +123,29 @@ io.sockets.on('connection', function (socket) {
 				// découpage par categorie de logement
 				for (var n = 0; n < result.length; n++){
 					if(result[n].typeLocal == "Maison"){
-						prix_maisons.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+						switch (obj.typprix) {
+							case true:
+								prix_maisons.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+								break;
+							default:
+								prix_maisons.push([new Date(result[n].dateMutation).getTime(),result[n].valeurFonciere]);
+						}
 					}else if(result[n].typeLocal == "Appartement"){
-						prix_apparts.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+						switch (obj.typprix) {
+							case true:
+								prix_apparts.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+								break;
+							default:
+								prix_apparts.push([new Date(result[n].dateMutation).getTime(),result[n].valeurFonciere]);
+						}
 					}else{
-						prix_autres.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+						switch (obj.typprix) {
+							case true:
+								prix_autres.push([new Date(result[n].dateMutation).getTime(),result[n].prixM2Bati]);
+								break;
+							default:
+								prix_autres.push([new Date(result[n].dateMutation).getTime(),result[n].valeurFonciere]);
+						}
 					}
 				}
 
@@ -133,7 +177,7 @@ io.sockets.on('connection', function (socket) {
 				//console.log('pente appart : '+pente_apparts);
 				//console.log('pente autre : '+pente_autres);
 				// envoi vers le front
-				socket.emit("data",{dataHouse: prix_maisons, dataFlat: prix_apparts, dataOther: prix_autres, regressions: [reg_maisons,reg_apparts,reg_autres], pentes: [pente_maisons,pente_apparts,pente_autres]});
+				socket.emit("data",{priceType: labelPrix, dataHouse: prix_maisons, dataFlat: prix_apparts, dataOther: prix_autres, regressions: [reg_maisons,reg_apparts,reg_autres], pentes: [pente_maisons,pente_apparts,pente_autres]});
 
 				// calcul mediane
 				var boxPlotdata = [];
@@ -144,17 +188,25 @@ io.sockets.on('connection', function (socket) {
 				var semestre = [];
 				// decoupage par semestre
 
-
+				// découpage par semestres
 				for (var ts = new Date('2014').getTime(); ts < new Date().getTime(); ts+=sixMonths){
-					result.forEach(function (obj){
-						if(new Date(obj.dateMutation).getTime() > ts && new Date(obj.dateMutation).getTime() < (ts+sixMonths) && obj.prixM2Bati != null){
-							myArray.push(obj.prixM2Bati);
+					result.forEach(function (line){
+						switch (obj.typprix) {
+							case true:
+								if(new Date(line.dateMutation).getTime() > ts && new Date(line.dateMutation).getTime() < (ts+sixMonths) && line.prixM2Bati != null){
+									myArray.push(line.prixM2Bati);
+								}
+								break;
+							case false:
+								if(new Date(line.dateMutation).getTime() > ts && new Date(line.dateMutation).getTime() < (ts+sixMonths) && line.valeurFonciere != null){
+									myArray.push(line.valeurFonciere);
+								}
+								break;
 						}
+
 					});
 
 					if(myArray.length > 2){
-						//console.log(myArray);
-						//console.log('3*ecarttype :'+3*math.std(myArray));
 						var std = math.std(myArray);
 						var mean = math.mean(myArray);
 						//console.log('mean: '+mean);
@@ -162,25 +214,20 @@ io.sockets.on('connection', function (socket) {
 						// suppression des valeurs aberrantes
 						myArray.forEach(function (e,index,array){
 							if(Math.abs(e - mean) > 2*std){// 2*std = 0.9545
-								//console.log(array[index]);
 								array.splice(index,1);
 							}
 						});
 						// q1 q2 q3 du semestre en cours
 						if(myArray.length > 2){
-
 							var quantiles = (math.quantileSeq(myArray,[0.1,0.25,0.5,0.75,0.9]));
-
 							boxPlotCategories.push(new Date(ts).toISOString());
 							boxPlotdata.push(quantiles);
 						}
 					}
 					myArray = [];
 				}
-				//console.log(quantiles);
-				//console.log(boxPlotdata);
-				//console.log(boxPlotCategories);
-				socket.emit("stats_basic",{categories : boxPlotCategories, data : boxPlotdata});
+
+				socket.emit("stats_basic",{priceType: labelPrix, categories : boxPlotCategories, data : boxPlotdata});
 		  });
 		});
 	});
