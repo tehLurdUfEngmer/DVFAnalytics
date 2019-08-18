@@ -41,3 +41,16 @@ git branch
 
 # changing branch work
 git checkout branchname
+
+# merge work branch to master branch
+git checkout master
+git merge branchname
+
+# delete a branch
+git branch -d branchname
+
+# pipe gitHub repository to git local
+git remote add origin https://github.com/tehLurdUfEngmer/DVFAnalytics.git
+
+# deposit project to gitHub
+git push origin master
