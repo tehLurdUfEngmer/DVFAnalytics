@@ -24,10 +24,20 @@ git init
 # check if there is modifications to commit
 git status
 
-# add a new file to Git Project
+# add or update a file to Git Project
 git add subPath/file.txt
 
 # commit changes
 git commit -m "description of changes"
 
-#
+# get historics of past commits:
+git log
+
+# create a git branch (project copy for working)
+git branch branchname
+
+# list the branchs running
+git branch
+
+# changing branch work
+git checkout branchname
