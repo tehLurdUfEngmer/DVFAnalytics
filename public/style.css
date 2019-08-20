@@ -1,3 +1,17 @@
+/*
+------------------------------------------------------
+Global styles
+------------------------------------------------------
+*/
+.container{
+
+}
+
+/*
+------------------------------------------------------
+Switch Button
+------------------------------------------------------
+*/
 /* The switch - the box around the slider */
 .switch {
   position: relative;
@@ -59,4 +73,16 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+/*
+------------------------------------------------------
+MAP
+------------------------------------------------------
+*/
+@media only screen and (min-width : 300px){
+  .map{
+    background-color: #CCC;
+    height : 500px;
+  }
 }

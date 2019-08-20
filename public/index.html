@@ -45,9 +45,13 @@
     <div id="envoi">
       <input type="button" value="Requêter" id="request"/>
     <div>
-		<div id="graphique1"></div>
-		<hr/>
-		<div id="boxplot"></div>
+    <div class="container" id="container">
+  		<div id="graphique1"></div>
+  		<div id="boxplot"></div>
+      <div class="map" id="map"></div>
+
+      </div>
+    </div>
 
 		<!--
 		<script src="https://code.highcharts.com/mapdata/countries/fr/fr-all.js"></script>
@@ -62,6 +66,9 @@
 		<script src="//rawgithub.com/phpepe/highcharts-regression/master/highcharts-regression.js"></script>
 
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/vendor/vendor.js"></script>
+    <script type="text/javascript" src="/map.js"></script>
+
     <script>
       var socket = io.connect('http://localhost:8080');
 
