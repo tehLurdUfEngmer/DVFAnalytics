@@ -29,6 +29,7 @@ class GoogleMap{
   @param : {String} lat : Latitude
   @param : {String} lon : Longitude
   @param : {String} txt : Texte
+  @return : {textMarker} Marker : marker
   */
   addMarker(lat, lon, txt){
     let point = new google.maps.LatLng(lat,lon)
@@ -37,6 +38,7 @@ class GoogleMap{
       map: this.map
     })
     this.bounds(point)
+    return marker
   }
 
   /**
@@ -48,12 +50,20 @@ class GoogleMap{
   }
 }
 
+class GoogleMapMarker(){
+
+}
+
 const initMap = async function(){
   let map = new GoogleMap()
   await map.load($map)
   Array.from(document.querySelectorAll('.js-coordonates')).forEach(function(item){
     map.addMarker(item.dataSet.lat, item.dataSet.lon, item.dataSet.txt + '€')
+    item.addEventListerner('mouseover', function(){
+
+    })
   })
+  map.centerMap()
 }
 if($map !== null){
   initMap()
