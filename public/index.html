@@ -4,54 +4,92 @@
         <meta charset="utf-8" />
         <title>Immobilier</title>
         <link href="/style.css" type="text/css" rel="stylesheet">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
     </head>
 
     <body>
-        <h1>Highcharts -- DVF (Demandes de Valeurs Foncières)</h1>
-        <h3><i>Author : TehLurdUfEngmer</i></h3>
-		<fieldset id = "zone1">
-			<label for="codePostal">Code Postal:</label>
-			<input type="text" placeholder="CODE POSTAL" id="codePostal" maxlength = "5" /><br/>
-			<label for="surfaceMin">Surface habitable Minimale:</label>
-			<input type="number" placeholder="Surface Min" id="surfaceMin"/><br/>
-			<label for="surfaceMax">Surface Habitable Maximale:</label>
-			<input type="number" placeholder="Surface Max" id="surfaceMax"/><br/>
-      <label for="typePrix">Terrain ?
-        <label class="switch">
-          <input type="checkbox" id ="avecTerrain">
-          <span class="slider"></span>
-        </label>
-      </label></br>
-      <div id="formTerrain" hidden>
-      <label for="surfaceMinTerrain">Surface Terrain Minimale:</label>
-			<input type="number" placeholder="Surface Min" id="surfaceMinTerrain" min="0"/><br/>
-			<label for="surfaceMaxTerrain">Surface Terrain Maximale:</label>
-			<input type="number" placeholder="Surface Max" id="surfaceMaxTerrain" min="1"/>
+      <div class="jumbotron">
+        <div class="container">
+          <h1 class="display-4">DVF (Demandes de Valeurs Foncières)</h1>
+
+        </div>
       </div>
-			<label for="typeLogement">Type de logement:</label>
-			<select name="typeLogement" id="listeLogement">
-			  <option value="1">Maison</option>
-			  <option value="2">Appartement</option>
-			  <option value="a">Autre</option>
-			  <option value="t">Tous</option>
-			</select><br/>
-      <label for="typePrix">Type de valeur : (€|€/m²)
-        <label class="switch">
-          <input type="checkbox" id ="typePrix">
-          <span class="slider"></span>
-        </label>
-      </label>
-		</fieldset>
-    <div id="envoi">
-      <input type="button" value="Requêter" id="request"/>
-    <div>
+      <div class="container">
+          <form id="form_query" action="" method="">
+            <div class="form-group">
+              <div class="row">
+                <div class="col-sm">
+                  <label for="codePostal">Code Postal:</label>
+                  <input class="form-control" type="text" placeholder="CODE POSTAL" id="codePostal"  pattern="^(([0-8][0-9])|(9[0-8]))[0-9]{0,3}$" maxlength = "5" required/>
+                </div>
+                <div class="col-sm">
+                  <label for="typeLogement">Type de logement:</label>
+                  <select class="form-control" name="typeLogement" id="listeLogement">
+                    <option value="1">Maison</option>
+                    <option value="2">Appartement</option>
+                    <option value="a">Autre</option>
+                    <option value="t">Tous</option>
+                  </select>
+                </div>
+                <div class="col-sm" id="taille_appart">
+                  <!-- lieu de creation d'un select en cas de recherche appart-->
+                </div>
+              </div>
+                <div class="row">
+                  <div class="col-sm">
+                    <label for="surfaceMin">Surface habitable Minimale:</label>
+                    <input class="form-control" type="number" placeholder="Surface Min" id="surfaceMin" required/>
+                  </div>
+                  <div class="col-sm">
+                    <label for="surfaceMax">Surface Habitable Maximale:</label>
+                    <input class="form-control" type="number" placeholder="Surface Max" id="surfaceMax" required/>
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-sm">
+                    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseTerrain" aria-expanded="false" aria-controls="collapseTerrain">
+                      Filtrer par taille du terrain
+                    </button>
+                  </div>
+                  <div class="col-sm form-check">
+                    <input class="form-check-input" type="checkbox" id ="typePrix">
+                    <label class="form-check-label" for="typePrix">Prix aux m²</label>
+                  </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="collapse" id="collapseTerrain">
+                      <div class="col-sm">
+                        <label for="surfaceMinTerrain">Surface Terrain Minimale:</label>
+                        <input class="form-control" type="number" placeholder="Surface Min" id="surfaceMinTerrain" min="0"/>
+                      </div>
+                      <div class="col-sm">
+                        <label for="surfaceMaxTerrain">Surface Terrain Maximale:</label>
+                        <input class="form-control" type="number" placeholder="Surface Max" id="surfaceMaxTerrain" min="1"/>
+                      </div>
+                    </div>
+                </div>
+                <div class="row mt-2" id="envoi">
+                  <div class="col-sm">
+                    <input class="btn btn-outline-secondary btn-block" type="submit" value="Requêter" id="request"/>
+                  </div>
+              </div>
+            </div>
+          </form>
+      </div>
+
+
+
     <div class="container" id="container">
   		<div id="graphique1"></div>
   		<div id="boxplot"></div>
       <div class="map" id="map"></div>
 
-      </div>
     </div>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
 		<!--
 		<script src="https://code.highcharts.com/mapdata/countries/fr/fr-all.js"></script>
@@ -67,12 +105,21 @@
 
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/vendor/vendor.js"></script>
-    <script type="text/javascript" src="/map.js"></script>
+  <!--  <script type="text/javascript" src="/map.js"></script> -->
+
 
     <script>
+
+      $(document).ready(function () {
+        $('#form_query').on('submit', function(e) {
+          e.preventDefault();
+        });
+      });
+
       var socket = io.connect('http://localhost:8080');
 
       //gestion affichage formulaire du terrain
+      /*
       document.getElementById("avecTerrain").onchange = function(){
 
         var estCoche = document.getElementById('avecTerrain').checked;
@@ -85,7 +132,7 @@
             break;
         }
 
-      }
+      }*/
 
       //gestion surface min Terrain
       document.getElementById("surfaceMinTerrain").onchange = function(){
@@ -103,16 +150,16 @@
       }
       //gestion surface min Habitable
       document.getElementById("surfaceMin").onchange = function(){
-        var actualValMin = document.getElementById('surfaceMin').value;
-        if(actualValMin > document.getElementById('surfaceMax').value){
-          document.getElementById('surfaceMax').value = actualValMin;
+        var actualValMinHab = document.getElementById('surfaceMin').value;
+        if(+actualValMinHab > +document.getElementById('surfaceMax').value){
+          document.getElementById('surfaceMax').value = actualValMinHab;
         }
       }
       //gestion surface max habitable
       document.getElementById("surfaceMax").onchange = function(){
-        var actualValMax = document.getElementById('surfaceMax').value;
-        if(actualValMax < document.getElementById('surfaceMin').value){
-          document.getElementById('surfaceMin').value = actualValMax;
+        var actualValMaxHab = document.getElementById('surfaceMax').value;
+        if(+actualValMaxHab < +document.getElementById('surfaceMin').value){
+          document.getElementById('surfaceMin').value = actualValMaxHab;
         }
       }
 
@@ -139,18 +186,20 @@
 				var codePostal = document.getElementById("codePostal").value;
 				var surfaceMin = document.getElementById("surfaceMin").value;
 				var surfaceMax = document.getElementById("surfaceMax").value;
-        var terrainCoche = document.getElementById("avecTerrain").checked;
+        //var terrainCoche = document.getElementById("avecTerrain").checked;
         var surfaceMinTerrain = document.getElementById("surfaceMinTerrain").value;
 				var surfaceMaxTerrain = document.getElementById("surfaceMaxTerrain").value;
 				var typeLog = document.getElementById("listeLogement").value;
         var typePrix = document.getElementById("typePrix").checked;
 
-        switch (terrainCoche) {
-          case false:// envoi null
+        if (surfaceMinTerrain.length == 0) {
             surfaceMinTerrain = null;
-            surfaceMaxTerrain = null;
-            break;
         }
+        if (surfaceMaxTerrain.length == 0) {
+            surfaceMaxTerrain = null;
+        }
+        console.log('min : ' + surfaceMinTerrain);
+        console.log('max : ' + surfaceMaxTerrain);
 
         if(document.getElementById("taille")){
           var tailleLog = document.getElementById("taille").value;
@@ -175,7 +224,7 @@
 						type: 'boxplot'
 					},
 					title: {
-						text: 'Boite a Moustache (par semestre)'
+						text: 'Boite à Moustache (par semestre)'
 					},
 					subtitle: {
 						text: 'Données aberrantes supprimées<br/>règle : |obs - mean| < 2 * std',
@@ -229,7 +278,7 @@
 						zoomType: 'x'
 					},
 					title: {
-						text: 'Prix de l\'immobilier (2014-2018)'
+						text: 'Prix de l\'immobilier (2014-2019)'
 					},
 
 					subtitle: {
@@ -332,6 +381,7 @@
           if(document.getElementById("lbl_"+obj.id_select)){
             var selectList = document.createElement("select");
         		selectList.setAttribute("id",obj.id_select);
+            selectList.setAttribute("class", "form-control");
 
         		obj.optionValues.forEach(function(value){
         			var option = document.createElement("option");
@@ -339,17 +389,18 @@
         			option.innerHTML+= obj.textTab[obj.optionValues.indexOf(value)];
         			selectList.appendChild(option);
             });
-            document.getElementById("zone1").appendChild(selectList);
+            document.getElementById("taille_appart").appendChild(selectList);
           }
           else{
             var label = document.createElement("label");
         		label.setAttribute("for",obj.id_select);
             label.setAttribute("id","lbl_"+obj.id_select);
         		label.innerHTML += "Catégorie: ";
-        		const sautLigne = document.createElement("br");
+        		//const sautLigne = document.createElement("br");
         		// Selection Appartement
         		var selectList = document.createElement("select");
         		selectList.setAttribute("id",obj.id_select);
+            selectList.setAttribute("class", "form-control");
 
         		obj.optionValues.forEach(function(value){
         			var option = document.createElement("option");
@@ -357,9 +408,9 @@
         			option.innerHTML+= obj.textTab[obj.optionValues.indexOf(value)];
         			selectList.appendChild(option);
             });
-            document.getElementById("zone1").appendChild(sautLigne);
-            document.getElementById("zone1").appendChild(label);
-            document.getElementById("zone1").appendChild(selectList);
+            //document.getElementById("taille_appart").appendChild(sautLigne);
+            document.getElementById("taille_appart").appendChild(label);
+            document.getElementById("taille_appart").appendChild(selectList);
           }
         }
         </script>

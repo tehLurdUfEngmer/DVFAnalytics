@@ -57,12 +57,10 @@ io.sockets.on('connection', function (socket) {
 
 		// gestion surface Terrain
 		if (obj.smaxt === null) {
-				var ssRqtSMinT = {$in:[null,0]};
+				var ssRqtSMinT = {$type: [1,2,6,10,16,18,19]};
 		}else{
 			var ssRqtSMinT = {$gt: parseInt(obj.smint)-1, $lt: parseInt(obj.smaxt)+1};
 		}
-
-
 
 
 		// gestion label highcharts sur l'abscisse
@@ -114,7 +112,7 @@ io.sockets.on('connection', function (socket) {
 			  // collection immobilier
 			  dbo.collection("immobilier").find(query).toArray(function(err, result) {
 				if (err) throw err;
-				//console.log(result.length);
+				console.log(result.length);
 				db.close();
 
 				var prix_maisons = [];
@@ -213,7 +211,7 @@ io.sockets.on('connection', function (socket) {
 
 						// suppression des valeurs aberrantes
 						myArray.forEach(function (e,index,array){
-							if(Math.abs(e - mean) > 2*std){// 2*std = 0.9545
+							if(Math.abs(e - mean) > 1.5*std){// 2*std = 0.9545
 								array.splice(index,1);
 							}
 						});
