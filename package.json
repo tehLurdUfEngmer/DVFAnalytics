@@ -10,7 +10,7 @@
         "mathjs": "^6.0.4",
         "mongodb": "^3.3.0-beta2",
         "parse-json": "^5.0.0",
-        "socket.io": "^2.2.0"
+        "socket.io": "^2.4.0"
     },
     "author": "Pierre Pagnoux",
     "description": "Analyse DVF"
