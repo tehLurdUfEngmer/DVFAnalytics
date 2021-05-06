@@ -5,7 +5,7 @@
         "compute-covariance": "^1.0.1",
         "ent": "^2.2.0",
         "express": "^4.17.1",
-        "highcharts": "^7.1.2",
+        "highcharts": "^9.0.0",
         "http": "0.0.0",
         "mathjs": "^6.0.4",
         "mongodb": "^3.3.0-beta2",
